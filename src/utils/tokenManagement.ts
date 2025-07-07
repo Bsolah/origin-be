@@ -18,8 +18,8 @@ export const verifyAccountVerificationToken = async (token: string): Promise<str
     }
 }
 
-export const createLoginToken = async (userId: string, email: string): Promise<string> => { 
-    const token = jwt.sign({ userId, email }, process.env.JWT_SECRET!, {
+export const createLoginToken = async (id: string, email: string): Promise<string> => { 
+    const token = jwt.sign({ id, email }, process.env.JWT_SECRET!, {
         expiresIn: '30d', // Token expires in 1 day
     })
     return token
