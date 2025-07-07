@@ -93,7 +93,7 @@ class UserService {
         user.email,
       );
 
-      return { user, token };
+      return { data: user, token };
     } catch (error) {
       if (error instanceof BaseError) {
         throw error; // Re-throw known BaseErrors
