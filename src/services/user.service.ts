@@ -98,9 +98,9 @@ class UserService {
           ...userData,
           password: hashedPassword,
         });
-        const verificationToken = await createAccountVerificationToken(
-          userDetails._id as unknown as string,
-        );
+        // const verificationToken = await createAccountVerificationToken(
+        //   userDetails._id as unknown as string,
+        // );
         await sendMail(
           userDetails.email!,
           'Thank you for signing up',
