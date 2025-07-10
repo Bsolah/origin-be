@@ -23,7 +23,8 @@ class UserService {
         userData.email!,
       );
       if (existingUser && existingUser.isVerified) {
-        throw new BaseError('User already exists', 400);
+        // throw new BaseError('User already exists', 400);
+        return;
       } else if (existingUser && !existingUser.isVerified) {
         // If user exists but is not verified, update the user data
         const hashedPassword = await hashPassword(userData.password!);
