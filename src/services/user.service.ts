@@ -8,8 +8,23 @@ import {
   createLoginToken,
   verifyAccountVerificationToken,
 } from '../utils/tokenManagement';
-import verificationEmailTemplate from '../views/verification-email';
+import verificationEmailTemplate, { onboardingAcknowledgmentTemplate } from '../views/verification-email';
+import { google } from 'googleapis';
 
+const credentials = JSON.parse(
+  Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_KEY!, 'base64').toString(
+    'utf-8',
+  ),
+);
+
+const auth = new google.auth.GoogleAuth({
+  credentials,
+  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+});
+
+console.log(process.env.GOOGLE_SHEET_ID);
+
+const range = 'Responses!A1'; // Adjust this to your sheet name and range
 class UserService {
   private userRepository: UserRepository;
 
@@ -19,6 +34,7 @@ class UserService {
 
   async createUser(userData: Partial<IUser>) {
     try {
+      const sheets = google.sheets({ version: 'v4', auth });
       const existingUser = await this.userRepository.findUserByEmail(
         userData.email!,
       );
@@ -39,14 +55,41 @@ class UserService {
         const verificationToken = await createAccountVerificationToken(
           userDetails._id as unknown as string,
         );
-        await sendMail(
-          userDetails.email!,
-          'Account Verification',
-          verificationEmailTemplate(
-            userDetails.name!,
-            `http://localhost:3000/api/v1/auth/verify-account?token=${verificationToken}`,
-          ),
-        );
+        // await sendMail(
+        //   userDetails.email!,
+        //   'Account Verification',
+        //   verificationEmailTemplate(
+        //     userDetails.name!,
+        //     `http://localhost:3000/api/v1/auth/verify-account?token=${verificationToken}`,
+        //   ),
+        // );
+        // const spreadsheetId = process.env.GOOGLE_SHEET_ID!;
+        // await sheets.spreadsheets.values.append({
+        //   spreadsheetId,
+        //   range,
+        //   valueInputOption: 'RAW',
+        //   requestBody: {
+        //     values: [
+        //       [
+        //         userData.name,
+        //         userData.email,
+        //         userData.phoneNumber,
+        //         userData.country,
+        //         userData.businessType,
+        //         new Date().toLocaleDateString('en-US', {
+        //           month: 'long', // April
+        //           weekday: 'short', // Thu
+        //           day: 'numeric', // 17
+        //           year: 'numeric', // 2023
+        //           hour: '2-digit', // 12
+        //           minute: '2-digit', // 30
+        //           second: '2-digit', // 30
+        //           hour12: true, // 12-hour format
+        //         }),
+        //       ],
+        //     ],
+        //   },
+        // });
         return userDetails;
       } else {
         const hashedPassword = await hashPassword(userData.password!);
@@ -60,12 +103,36 @@ class UserService {
         );
         await sendMail(
           userDetails.email!,
-          'Account Verification',
-          verificationEmailTemplate(
-            userDetails.name!,
-            `http://localhost:3000/api/v1/auth/verify-account?token=${verificationToken}`,
-          ),
+          'Thank you for signing up',
+          onboardingAcknowledgmentTemplate(userDetails.name)
         );
+        const spreadsheetId = process.env.GOOGLE_SHEET_ID!;
+        await sheets.spreadsheets.values.append({
+          spreadsheetId,
+          range,
+          valueInputOption: 'RAW',
+          requestBody: {
+            values: [
+              [
+                userData.name,
+                userData.email,
+                userData.phoneNumber,
+                userData.country,
+                userData.country,
+                new Date().toLocaleDateString('en-US', {
+                  month: 'long', // April
+                  weekday: 'short', // Thu
+                  day: 'numeric', // 17
+                  year: 'numeric', // 2023
+                  hour: '2-digit', // 12
+                  minute: '2-digit', // 30
+                  second: '2-digit', // 30
+                  hour12: true, // 12-hour format
+                }),
+              ],
+            ],
+          },
+        });
         return userDetails;
       }
     } catch (error) {

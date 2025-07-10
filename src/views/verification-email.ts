@@ -59,4 +59,52 @@ const verificationEmailTemplate = (name: string, link: string) => {
 `;
 }
 
+export const onboardingAcknowledgmentTemplate = (name: string) => { 
+  return `
+  <!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Thank You for Onboarding</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f6f9fc;
+        margin: 0;
+        padding: 0;
+      }
+      .email-container {
+        max-width: 600px;
+        margin: auto;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .footer {
+        font-size: 12px;
+        color: #888888;
+        margin-top: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <h2>Thank You for Onboarding with Origin</h2>
+      <p>Hi ${name},</p>
+      <p>Thank you for onboarding with <strong>Origin</strong>! We're excited to have you with us.</p>
+      <p>Our team will review your details and get back to you shortly with the next steps.</p>
+      <p>If you have any questions in the meantime, feel free to reach out.</p>
+
+      <p>Welcome aboard!</p>
+
+      <div class="footer">
+        &copy; 2025 Origin Inc. All rights reserved.
+      </div>
+    </div>
+  </body>
+</html>
+`;
+}
+
 export default verificationEmailTemplate
