@@ -1,5 +1,6 @@
 import { BaseError } from '../errors/error';
 import { IUser } from '../model/user.model';
+import KycRepository from '../repository/kyc.repository';
 import UserRepository from '../repository/user.repository';
 import { comparePassword, hashPassword } from '../utils/passwordHashing';
 import sendMail from '../utils/sendMail';
@@ -8,7 +9,9 @@ import {
   createLoginToken,
   verifyAccountVerificationToken,
 } from '../utils/tokenManagement';
-import verificationEmailTemplate, { onboardingAcknowledgmentTemplate } from '../views/verification-email';
+import verificationEmailTemplate, {
+  onboardingAcknowledgmentTemplate,
+} from '../views/verification-email';
 import { google } from 'googleapis';
 
 const credentials = JSON.parse(
@@ -27,9 +30,11 @@ console.log(process.env.GOOGLE_SHEET_ID);
 const range = 'Responses!A1'; // Adjust this to your sheet name and range
 class UserService {
   private userRepository: UserRepository;
+  private kycRepository: KycRepository;
 
   constructor() {
     this.userRepository = new UserRepository();
+    this.kycRepository = new KycRepository();
   }
 
   async createUser(userData: Partial<IUser>) {
@@ -104,7 +109,7 @@ class UserService {
         await sendMail(
           userDetails.email!,
           'Thank you for signing up',
-          onboardingAcknowledgmentTemplate(userDetails.name)
+          onboardingAcknowledgmentTemplate(userDetails.name),
         );
         const spreadsheetId = process.env.GOOGLE_SHEET_ID!;
         await sheets.spreadsheets.values.append({
@@ -188,6 +193,33 @@ class UserService {
         throw error; // Re-throw known BaseErrors
       }
       throw new BaseError('Error verifying user account', 400, error);
+    }
+  }
+
+  async addKycDetails(userId: string, kycData: any): Promise<any> {
+    try {
+      const user = await this.userRepository.findUserById(userId);
+      if (!user) {
+        throw new BaseError('User not found', 404);
+      }
+      if (!user.isVerified) {
+        throw new BaseError('User not verified', 403);
+      }
+      const existingKyc = await this.kycRepository.findKycByUserId(userId);
+      if (existingKyc) {
+        await this.kycRepository.updateKyc(
+          existingKyc._id as unknown as string,
+          kycData,
+        );
+        return existingKyc;
+      }
+      const kyc = await this.kycRepository.createKyc(userId, kycData);
+      return kyc;
+    } catch (error) {
+      if (error instanceof BaseError) {
+        throw error; // Re-throw known BaseErrors
+      }
+      throw new BaseError('Error adding KYC details', 400, error);
     }
   }
 }

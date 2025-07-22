@@ -14,7 +14,14 @@ export interface KYC extends mongoose.Document {
   website: string;
   email: string;
   phoneNumber: string;
-  address: string;
+  address: {
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    country: string;
+    postalCode: string;
+  };
   officers: {
     firstName: string;
     lastName: string;
@@ -37,13 +44,14 @@ export interface KYC extends mongoose.Document {
     };
   }[];
 }
-const kycSchema = new mongoose.Schema<KYC>({
-  userId: { type: String, required: true },
-  status: {
-    type: String,
-    enum: ['pending', 'approved', 'rejected'],
-    default: 'pending',
-  },
+const kycSchema = new mongoose.Schema<KYC>(
+  {
+    userId: { type: String, required: true },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending',
+    },
     type: { type: String, required: true },
     name: { type: String, required: true },
     bvn: { type: String, required: true },
@@ -63,7 +71,8 @@ const kycSchema = new mongoose.Schema<KYC>({
       country: { type: String, required: true },
       postalCode: { type: String, required: true },
     },
-    officers: [{
+    officers: [
+      {
         firstName: { type: String, required: true },
         lastName: { type: String, required: true },
         middleName: { type: String },
@@ -72,8 +81,21 @@ const kycSchema = new mongoose.Schema<KYC>({
         dateOfBirth: { type: String, required: true },
         percentageOwned: { type: Number, required: true },
         bvn: { type: String, required: true },
-    }],
-
-}, {
+        address: {
+          line1: { type: String, required: true },
+          line2: { type: String },
+          city: { type: String, required: true },
+          state: { type: String, required: true },
+          country: { type: String, required: true },
+          postalCode: { type: String, required: true },
+        },
+      },
+    ],
+  },
+  {
     timestamps: true,
-});
+  },
+);
+
+const Kyc = mongoose.model<KYC>('KYC', kycSchema);
+export default Kyc;

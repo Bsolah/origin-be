@@ -1,9 +1,7 @@
 import * as jwt from 'jsonwebtoken';
 import { Response, NextFunction, Request } from 'express';
-import { Unauthenticated } from '../errors';
-import { UserTokenPayload } from '../interface/general.interface';
 
-export const authenticateUser = async (
+export const authenticateUser: any = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -16,7 +14,11 @@ export const authenticateUser = async (
       token = req.cookies.accessToken;
     } else {
       // Return early if no token is provided
-      return next(new Unauthenticated('Authentication error'));
+
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication token is missing or invalid',
+      });
     }
   } else {
     token = header.split(' ')[1];
@@ -27,16 +29,14 @@ export const authenticateUser = async (
     const decodedToken = jwt.verify(
       token,
       process.env.JWT_SECRET as string,
-    ) as UserTokenPayload;
+    ) as any;
     req.user = decodedToken; // Attach decoded token to the request
     next(); // Proceed to the next middleware or route handler
   } catch (err: any) {
     // Inline function to handle errors and clear cookies
-    function handleAuthError(message: string) {
-      res.clearCookie('accessToken');
-      return next(new Unauthenticated(message));
-    }
-
-    return handleAuthError(err.message);
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid or expired authentication token',
+    });
   }
 };

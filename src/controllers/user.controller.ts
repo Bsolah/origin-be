@@ -1,18 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import UserService from '../services/user.service';
 
-
 const userService = new UserService();
 
 export const createUser: (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => void  = async (
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
+) => void = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userData = req.body;
     const userDetails = await userService.createUser(userData);
@@ -59,6 +54,25 @@ export const loginUser: (
       success: true,
       message: 'Login successful',
       data: data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const addKycDetails: (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => void = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.params.userId;
+    const kycData = req.body;
+    const kycDetails = await userService.addKycDetails(userId, kycData);
+    return res.status(201).json({
+      success: true,
+      message: 'KYC details added successfully',
+      data: kycDetails,
     });
   } catch (error) {
     next(error);
