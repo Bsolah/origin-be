@@ -66,12 +66,30 @@ export const addKycDetails: (
   next: NextFunction,
 ) => void = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = req.params.userId;
+    const userId = req.user.id as string;
     const kycData = req.body;
     const kycDetails = await userService.addKycDetails(userId, kycData);
     return res.status(201).json({
       success: true,
       message: 'KYC details added successfully',
+      data: kycDetails,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMyKycDetails: (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => void = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.id as string;
+    const kycDetails = await userService.getMyKycDetails(userId);
+    return res.status(200).json({
+      success: true,
+      message: 'KYC details retrieved successfully',
       data: kycDetails,
     });
   } catch (error) {

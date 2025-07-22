@@ -1,6 +1,6 @@
 import { required } from 'joi';
 import mongoose from 'mongoose';
-export interface KYC extends mongoose.Document {
+export interface IKYC extends mongoose.Document {
   userId: string;
   status: 'pending' | 'approved' | 'rejected';
   type: string;
@@ -44,7 +44,7 @@ export interface KYC extends mongoose.Document {
     };
   }[];
 }
-const kycSchema = new mongoose.Schema<KYC>(
+const kycSchema = new mongoose.Schema<IKYC>(
   {
     userId: { type: String, required: true },
     status: {
@@ -52,7 +52,7 @@ const kycSchema = new mongoose.Schema<KYC>(
       enum: ['pending', 'approved', 'rejected'],
       default: 'pending',
     },
-    type: { type: String, required: true },
+    type: { type: String, required: true, default: 'business' },
     name: { type: String, required: true },
     bvn: { type: String, required: true },
     industry: { type: String, required: true },
@@ -97,5 +97,5 @@ const kycSchema = new mongoose.Schema<KYC>(
   },
 );
 
-const Kyc = mongoose.model<KYC>('KYC', kycSchema);
+const Kyc = mongoose.model<IKYC>('KYC', kycSchema);
 export default Kyc;

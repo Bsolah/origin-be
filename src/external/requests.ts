@@ -3,8 +3,9 @@ import config from '../config';
 
 
 export const anchorRequests = axios.create({
-  baseURL: 'https://api.sandbox.getanchor.co/api/v1',
+  baseURL: config().anchorBaseUrl,
   headers: {
+    'x-anchor-key': config().anchorApiKey,
     // 'Authorization': `Bearer ${config().}`
-  }
+  },
 });

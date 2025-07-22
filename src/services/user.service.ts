@@ -1,4 +1,6 @@
 import { BaseError } from '../errors/error';
+import { anchorRequests } from '../external/requests';
+import { IKYC } from '../model/kyc.model';
 import { IUser } from '../model/user.model';
 import KycRepository from '../repository/kyc.repository';
 import UserRepository from '../repository/user.repository';
@@ -196,7 +198,7 @@ class UserService {
     }
   }
 
-  async addKycDetails(userId: string, kycData: any): Promise<any> {
+  async addKycDetails(userId: string, kycData: Partial<IKYC>): Promise<any> {
     try {
       const user = await this.userRepository.findUserById(userId);
       if (!user) {
@@ -204,6 +206,29 @@ class UserService {
       }
       if (!user.isVerified) {
         throw new BaseError('User not verified', 403);
+      }
+      if (!user.anchorCustomerId) {
+        const response = anchorRequests.post('/customers', {
+          type: 'BusinessCustomer',
+          basicDetail: {
+            businessName: kycData.name,
+            businessBvn: kycData.bvn,
+            industry: kycData.industry,
+            registrationType: kycData.registrationType,
+            dateOfRegistration: kycData.dateOfRegistration,
+            description: kycData.description,
+            country: kycData.country,
+            website: kycData.website,
+          },
+          contact: {
+            email: kycData.email,
+            phoneNumber: kycData.phoneNumber,
+            address: {
+              main: kycData.address,
+            },
+          },
+          officers: kycData.officers,
+        });
       }
       const existingKyc = await this.kycRepository.findKycByUserId(userId);
       if (existingKyc) {
@@ -220,6 +245,28 @@ class UserService {
         throw error; // Re-throw known BaseErrors
       }
       throw new BaseError('Error adding KYC details', 400, error);
+    }
+  }
+
+  async getMyKycDetails(userId: string): Promise<any> {
+    try {
+      const user = await this.userRepository.findUserById(userId);
+      if (!user) {
+        throw new BaseError('User not found', 404);
+      }
+      if (!user.isVerified) {
+        throw new BaseError('User not verified', 403);
+      }
+      const kyc = await this.kycRepository.findKycByUserId(userId);
+      if (!kyc) {
+        throw new BaseError('KYC details not found', 404);
+      }
+      return kyc;
+    } catch (error) {
+      if (error instanceof BaseError) {
+        throw error; // Re-throw known BaseErrors
+      }
+      throw new BaseError('Error retrieving KYC details', 400, error);
     }
   }
 }

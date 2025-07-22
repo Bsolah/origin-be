@@ -206,7 +206,7 @@ const validateKycDetailsSchema = Joi.object({
     'string.empty': 'Email cannot be empty',
     'any.required': 'Email is required',
   }),
-  phomNumber: Joi.string()
+  phoneNumber: Joi.string()
     .pattern(/^\+?[1-9]\d{1,14}$/)
     .required()
     .messages({
@@ -222,7 +222,7 @@ const validateKycDetailsSchema = Joi.object({
       'string.empty': 'Address line 1 cannot be empty',
       'any.required': 'Address line 1 is required',
     }),
-    line2: Joi.string().optional(),
+    line2: Joi.string().optional().allow(''),
     city: Joi.string().required().messages({
       'string.base': 'City must be a string',
       'string.empty': 'City cannot be empty',
@@ -243,7 +243,13 @@ const validateKycDetailsSchema = Joi.object({
       'string.empty': 'Postal code cannot be empty',
       'any.required': 'Postal code is required',
     }),
-  }).required(),
+  })
+    .required()
+    .messages({
+      'object.base': 'Address must be an object',
+      'object.empty': 'Address cannot be empty',
+      'any.required': 'Address is required',
+    }),
   officers: Joi.array().items(
     Joi.object({
       firstName: Joi.string().required().messages({
@@ -280,6 +286,38 @@ const validateKycDetailsSchema = Joi.object({
         'string.length': 'Officer BVN must be exactly 11 digits long',
         'string.pattern.base': 'Officer BVN must contain only digits',
         'any.required': 'Officer BVN is required',
+      }),
+      address: Joi.object({
+        line1: Joi.string().required().messages({
+          'string.base': 'Address line 1 must be a string',
+          'string.empty': 'Address line 1 cannot be empty',
+          'any.required': 'Address line 1 is required',
+        }),
+        line2: Joi.string().optional().allow(''),
+        city: Joi.string().required().messages({
+          'string.base': 'City must be a string',
+          'string.empty': 'City cannot be empty',
+          'any.required': 'City is required',
+        }),
+        state: Joi.string().required().messages({
+          'string.base': 'State must be a string',
+          'string.empty': 'State cannot be empty',
+          'any.required': 'State is required',
+        }),
+        country: Joi.string().required().messages({
+          'string.base': 'Country must be a string',
+          'string.empty': 'Country cannot be empty',
+          'any.required': 'Country is required',
+        }),
+        postalCode: Joi.string().required().messages({
+          'string.base': 'Postal code must be a string',
+          'string.empty': 'Postal code cannot be empty',
+          'any.required': 'Postal code is required',
+        }),
+      }).messages({
+        'object.base': 'Address must be an object',
+        'object.empty': 'Address cannot be empty',
+        'any.required': 'Address is required',
       }),
     }),
   ),
@@ -325,6 +363,8 @@ export const validateKycDetails = async (
   next: NextFunction,
 ) => {
   try {
+    await validateKycDetailsSchema.validateAsync(req.body);
+    next();
   } catch (error: any) {
     res.status(422).json({
       success: false,
