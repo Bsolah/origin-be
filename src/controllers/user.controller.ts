@@ -19,7 +19,8 @@ export const createUser: (
   } catch (error) {
     next(error);
   }
-};
+  };
+
 
 export const verifyAccount: (
   req: Request,
@@ -95,4 +96,23 @@ export const getMyKycDetails: (
   } catch (error) {
     next(error);
   }
-};
+  };
+
+export const addMangoUser: (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => void = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+
+    const mangoUser = await userService.addMangoUser(req.body.email, req.body.name);
+    return res.status(201).json({
+      success: true,
+      message: 'Mango user added successfully',
+      data: mangoUser,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+  

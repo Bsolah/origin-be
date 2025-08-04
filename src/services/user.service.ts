@@ -269,6 +269,36 @@ class UserService {
       throw new BaseError('Error retrieving KYC details', 400, error);
     }
   }
+
+  // add mango
+  async addMangoUser(email: string, name: string) {
+    const range = 'Mango!A1';
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID!;
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range,
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [
+          [
+            name,
+            email,
+            new Date().toLocaleDateString('en-US', {
+              month: 'long', // April
+              weekday: 'short', // Thu
+              day: 'numeric', // 17
+              year: 'numeric', // 2023
+              hour: '2-digit', // 12
+              minute: '2-digit', // 30
+              second: '2-digit', // 30
+              hour12: true, // 12-hour format
+            }),
+          ],
+        ],
+      },
+    });
+  }
 }
 
 export default UserService;
